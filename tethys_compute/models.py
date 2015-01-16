@@ -4,6 +4,10 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 
+class Cluster(models.Model):
+    name = models.CharField(max_length=30)
+    size = models.IntegerField()
+
 class TethysJob(models.Model):
     STATUSES = (
         ('PEN', 'Pending'),

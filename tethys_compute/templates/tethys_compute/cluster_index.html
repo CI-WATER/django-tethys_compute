@@ -1,0 +1,55 @@
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'tethys_compute/css/table.css' %}" />
+
+<h1>Compute Clusters</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+
+<table>
+    <thead>
+        <tr>
+            <th>Cluster Name</th>
+            <th colspan="2">Size</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% if clusters %}
+    {% for cluster in clusters %}
+        <tr>
+            <td>{{ cluster.name }}</td>
+            <td><output id="size_output_{{ cluster.id }}" for="size_{{ cluster.id }}">{{ cluster.size }}</output></td>
+            <td>
+                <form>
+                    {% csrf_token %}
+                    <span>1</span>
+                    <input type='range' name='size_{{ cluster.id }}' id='size_{{ cluster.id }}' min='1', max='20', value='{{ cluster.size }}' />
+                    <span>20</span>
+                </form>
+            </td>
+            <td><a href="{% url 'delete_cluster' cluster.id %}">Delete</a></td>
+        </tr>
+    {% endfor %}
+    {% endif %}
+        <tr>
+            <form action='{% url 'create_cluster'  %}' method='post'>
+                {% csrf_token %}
+                <td><input type='text' name='name' id='name' value='{{ name }}' /></td>
+                <td><output id="size_output" for="size">2</output></td>
+                <td>
+                    <span>1</span>
+                    <input type='range' name='size' id='size' min='1', max='20', value='2' />
+                    <span>20</span>
+                </td>
+                <td><input type='submit' value='Create' /></td>
+            </form>
+        </tr>
+    </tbody>
+</table>
+
+
+
+<script>num_clusters={{ clusters|length }}; start_index={{ clusters.0.id }}</script>
+<script src="{% static 'tethys_compute/js/cluster_index.js' %}"></script>
