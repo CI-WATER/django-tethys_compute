@@ -5,8 +5,20 @@ from django.utils import timezone
 
 
 class Cluster(models.Model):
+    STATUSES = (
+        ('STR', 'Starting'),
+        ('RUN', 'Running'),
+        ('STP', 'Stopped'),
+        ('UPD', 'Updating'),
+        ('DEL', 'Deleting'),
+        ('ERR', 'Error')
+    )
     name = models.CharField(max_length=30)
     size = models.IntegerField()
+    status = models.CharField(max_length=3, choices=STATUSES, default=STATUSES[0][0])
+
+    def __str__(self):
+        return '%s (%d-node)' % (self.name, self.size)
 
 class TethysJob(models.Model):
     STATUSES = (
@@ -22,7 +34,7 @@ class TethysJob(models.Model):
     creation_time = models.DateTimeField(default=timezone.now())
     submission_time = models.DateTimeField()
     completion_time = models.DateTimeField()
-    status = models.CharField(max_length=3, choices=STATUSES)
+    status = models.CharField(max_length=3, choices=STATUSES, default=STATUSES[0][0])
 
     def execute(self):
         """

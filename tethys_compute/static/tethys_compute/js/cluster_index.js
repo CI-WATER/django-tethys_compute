@@ -1,10 +1,8 @@
 
-function add_listeners(elem){
-    var update_elem = elem;
-    var id = elem.getAttribute('for');
-    var ref_elem = document.getElementById(id);
+function add_listeners(ref_elem, update_elem, update_btn){
     function update(){
         update_elem.value = ref_elem.value;
+        update_btn.removeAttribute('disabled');
     }
     ref_elem.addEventListener('mousedown', function(){
         this.addEventListener('mousemove', update);
@@ -15,10 +13,19 @@ function add_listeners(elem){
     });
 }
 
-add_listeners(document.getElementById('size_output'));
-
-
-for(var i=start_index, len=start_index + num_clusters;i<len;i++){
-    var output_id = 'size_output_' + i;
-    add_listeners(document.getElementById(output_id));
+var size_output_elems = document.getElementsByName('size_output');
+for(var i=0, len=size_output_elems.length;i<len;i++){
+    var size_output_elem = size_output_elems[i];
+    var size_id = size_output_elem.getAttribute('for');
+    var size_elem = document.getElementById(size_id);
+    var btn_id = size_output_elem.getAttribute('btn_id');
+    var update_btn = document.getElementById(btn_id);
+    add_listeners(size_elem, size_output_elem, update_btn);
 }
+
+document.getElementById('create_form').addEventListener('submit',function(){
+    document.getElementById('create_submit').hidden = true;
+    document.getElementById('size').setAttribute('readonly','true');
+    document.getElementById('name').setAttribute('readonly', 'true');
+    document.getElementById('loader').hidden = false;
+});

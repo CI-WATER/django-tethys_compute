@@ -32,5 +32,5 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires = ['StarCluster'],
+    install_requires = ['StarCluster'], #TODO make this tethyscluster. Point at github page
 )

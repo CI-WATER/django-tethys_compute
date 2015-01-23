@@ -3,41 +3,134 @@ from django.http import HttpResponse, HttpResponseServerError
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
 
-from starcluster.api import StarCluster
+from tethyscluster.cli_api import TethysCluster
+from tethyscluster import config, cluster
+from subprocess import Popen
+from multiprocessing import Process
+from threading import Timer
+
 from tethys_compute.models import TethysJob, Cluster
 
 # Create your views here.
 
 def index(request):
+    _status_update()
     clusters = Cluster.objects.all()
     return render(request, 'tethys_compute/cluster_index.html', {'clusters':clusters})
 
+def _status_update():
+    clusters = Cluster.objects.all()
+    cm = config.get_cluster_manager()
+    for cluster in clusters:
+        status = cluster.status
+        try:
+            cl = cm.get_cluster_or_none(cluster.name)
+        except Exception as e:
+            print e.message
+        if cl is None:
+            if status == 'STR':
+                pass
+            elif status == 'DEL':
+                cluster.delete()
+            else:
+                cluster.status = 'ERR'
+                cluster.save()
+        elif (status == 'STR' or status == 'STP') and cl.is_cluster_up():
+            print cluster
+            cluster.status = 'RUN'
+            cluster.save()
+        elif status == 'RUN':
+            if cl.is_cluster_stopped():
+                cluster.status = 'STP'
+                cluster.save()
+            elif not cl.is_valid():
+                cluster.status = 'ERR'
+                cluster.save()
+
+
 
 def create_cluster(request):
-    name = 'New Cluster'
-    size = 2
     if request.POST:
         name = request.POST['name']
         size = int(request.POST['size'])
+        try:
+            #sc = TethysCluster()
+            #sc.start(name, cluster_size=size)
+
+            # cm = config.get_cluster_manager()
+            # cl = cm.get_default_template_cluster()
+            # cl.update({'cluster_size':size})
+            # cl.start()
+
+            process = Popen(['tethyscluster', 'start', '-s', str(size), name])
+
+            # t = Timer(120, _status_update)
+            # t.start()
+
+        except Exception as e:
+            return HttpResponseServerError('There was an error with TethysCluster: %s' % str(e.message))
+
         cluster = Cluster(name=name, size=size)
         cluster.save()
-        try:
-            sc = StarCluster()
-            #sc.start(name, cluster_size=size)
-        except:
-            return HttpResponseServerError('There was an error with TethysCluster')
+
         return redirect(reverse('index'))
     else:
         raise Exception
 
 
+def update_cluster(request, pk):
+    if request.POST:
+        cluster = get_object_or_404(Cluster, id=pk)
+        name = cluster.name
+        delta_size = abs(request.POST['size'] - cluster.size)
+        if delta_size != 0:
+            cmd = 'addnode' if request.POST['size'] > cluster.size else 'deletenode'
+
+            Popen(['tethyscluster', cmd, '-n', delta_size, name])
+
+            cluster.size = request.POST['size']
+            cluster.status = 'UPD'
+            cluster.save()
+
+        return redirect(reverse('index'))
+    else:
+        raise Exception
+
 def delete_cluster(request, pk):
     cluster = get_object_or_404(Cluster, id=pk)
     name = cluster.name
-    cluster.delete()
+
     try:
-        sc = StarCluster()
-        #sc.terminate(name)
+        # sc = TethysCluster()
+        # sc.terminate(name)
+
+        # cm = config.get_cluster_manager()
+        # cl = cm.get_cluster(name)
+        # cl.terminate_cluster(force=True)
+
+        # Popen(['tethyscluster', 'terminate', '-f', '-c', name])
+
+        process = Process(target=_delete_cluster, args=(name,))
+        process.start()
+
     except:
         HttpResponse('There was an error with TethysCluster')
+
+    cluster.status = 'DEL'
+    cluster.save()
+
     return redirect(reverse('index'))
+
+
+def _start_cluster(name, size):
+    cm = config.get_cluster_manager()
+    cl = cm.get_default_template_cluster(name)
+    cl.update({'cluster_size':size})
+    cl.start()
+
+def _delete_cluster(name):
+    cm = config.get_cluster_manager()
+    cl = cm.get_cluster(name)
+    cl.terminate_cluster(force=True)
+    cluster = Cluster.objects.get(name=name)
+    cluster.delete()
