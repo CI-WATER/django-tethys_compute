@@ -18,7 +18,7 @@ KEY_LOCATION=~/Documents/_MyDocuments/CI-Water/starcluster-east.pem
 KEYNAME = tethys_key
 CLUSTER_SIZE = 1
 CLUSTER_SHELL = bash
-NODE_IMAGE_ID = ami-92ef8cfa
+NODE_IMAGE_ID = ami-64f2b10c
 NODE_INSTANCE_TYPE = t2.micro
 PLUGINS = condor
 
@@ -36,5 +36,7 @@ AWS_USER_ID=%(aws_user_id)s
 KEY_LOCATION=%(key_location)s
 """
 
+with open(TETHYSCLUSTER_TETHYS_CFG_FILE, 'w') as config_file:
+    pass
 with open(TETHYSCLUSTER_CFG_FILE, 'w') as config_file:
     config_file.write(TETHYSCLUSTER_CONFIG_TEMPLATE)
