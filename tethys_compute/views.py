@@ -14,38 +14,9 @@ from tethys_compute.models import TethysJob, Cluster
 # Create your views here.
 
 def index(request):
-    _status_update()
     clusters = Cluster.objects.all()
-    return render(request, 'tethys_compute/cluster_index.html', {'clusters':clusters})
+    return render(request, 'tethys_compute/cluster_index.html', {'title':'Computing Resources', 'clusters':clusters})
 
-def _status_update():
-    clusters = Cluster.objects.all()
-    cm = config.get_cluster_manager()
-    for cluster in clusters:
-        status = cluster.status
-        try:
-            cl = cm.get_cluster_or_none(cluster.name)
-        except Exception as e:
-            print e.message
-        if cl is None:
-            if status == 'STR':
-                pass
-            elif status == 'DEL':
-                cluster.delete()
-            else:
-                cluster.status = 'ERR'
-                cluster.save()
-        elif (status == 'STR' or status == 'STP') and cl.is_cluster_up():
-            print cluster
-            cluster.status = 'RUN'
-            cluster.save()
-        elif status == 'RUN':
-            if cl.is_cluster_stopped():
-                cluster.status = 'STP'
-                cluster.save()
-            elif not cl.is_valid():
-                cluster.status = 'ERR'
-                cluster.save()
 
 
 

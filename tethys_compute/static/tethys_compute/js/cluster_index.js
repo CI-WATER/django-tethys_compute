@@ -29,3 +29,8 @@ document.getElementById('create_form').addEventListener('submit',function(){
     document.getElementById('name').setAttribute('readonly', 'true');
     document.getElementById('loader').hidden = false;
 });
+
+document.getElementById('create_link').addEventListener('click', function(event){
+    document.getElementById('create_row').hidden = false;
+    event.preventDefault();
+}, false);
