@@ -12,10 +12,10 @@ setup(
     version='0.0',
     packages=['tethys_compute'],
     include_package_data=True,
-    license='BSD License',  # example license
-    description='A Django app for adding computing resources admin controls to Tehtys .',
+    license='BSD 2-Clause License',  # example license
+    description='A Django app for adding computing resources admin controls to Tethys .',
     long_description=README,
-    #url='http://www.example.com/',
+    url='https://github.com/CI-WATER/TethysCluster/wiki',
     author='Scott Christensen',
     author_email='sdc50@byu.net',
     classifiers=[
@@ -26,11 +26,10 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         # Replace these appropriately if you are stuck on Python 2.
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires = ['StarCluster'], #TODO make this tethyscluster. Point at github page
+    install_requires = ['TethysCluster', 'condorpy'],
 )

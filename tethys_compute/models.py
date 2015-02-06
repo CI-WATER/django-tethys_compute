@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
-from tethys_compute import TETHYSCLUSTER_TETHYS_CFG_FILE, TETHYSCLUSTER_TETHYS_CONFIG_TEMPLATE
+from tethys_compute import TETHYSCLUSTER_CFG_FILE, TETHYSCLUSTER_CFG_TEMPLATE
 
 import os, re
 from multiprocessing import Process
@@ -45,8 +45,8 @@ class Setting(models.Model):
 @receiver(post_save, sender=Setting)
 def setting_post_save(sender, instance, created, raw, using, update_fields, **kwargs):
     settings = Setting.as_dict()
-    with open(TETHYSCLUSTER_TETHYS_CFG_FILE, 'w') as config_file:
-        config_file.write(TETHYSCLUSTER_TETHYS_CONFIG_TEMPLATE % settings)
+    with open(TETHYSCLUSTER_CFG_FILE, 'w') as config_file:
+        config_file.write(TETHYSCLUSTER_CFG_TEMPLATE % settings)
 
 
 class Cluster(models.Model):
@@ -66,7 +66,11 @@ class Cluster(models.Model):
         ('AZR', 'Microsoft Azure'),
     )
 
-    TC_MANAGER = tethyscluster_config.get_cluster_manager()
+    try:
+        TC_MANAGER = tethyscluster_config.get_cluster_manager()
+    except Exception as e:
+        print e.message
+        TC_MANAGER = None
 
     _name = models.CharField(max_length=30, unique=True, default='tethys_default')
     _size = models.IntegerField(default=1)
@@ -129,7 +133,7 @@ class Cluster(models.Model):
                 tc.update({'cluster_size':self.size})
                 tc.start(validate_only=False)
                 self._tethys_cluster = tc
-                self.connect_scheduler_to_master()
+                self.connect_scheduler_and_master()
                 self.save()
             except Exception as e:
                 print e.message
@@ -138,7 +142,6 @@ class Cluster(models.Model):
             #raise
 
     def connect_scheduler_and_master(self):
-        print('connecting host to master')
         def add_value_to_condor_config(config_file, attr, value):
             text = config_file.read()
             text_parts = re.split('^\s*%s ?= ?' % (attr, ), text, flags=re.IGNORECASE|re.M)
@@ -186,7 +189,7 @@ class Cluster(models.Model):
                 cmd = self._add_nodes if self.size > tc_size else self._remove_nodes
                 cmd(delta)
         else:
-            pass
+            self.create_tethys_cluster()
             #raise
 
     def delete_tethys_cluster(self):
@@ -289,9 +292,3 @@ class CondorJob(TethysJob):
     @property
     def condorpy_job(self):
         pass
-
-'''
-from tethys_compute.models import Cluster as C
-cls = C.objects.all()
-cl = cls[0]
-'''
