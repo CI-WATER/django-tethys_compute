@@ -31,6 +31,8 @@ PLUGINS = condor
 SETUP_CLASS = tethyscluster.plugins.condor.CondorPlugin
 """
 
+if not os.path.isdir(TETHYSCLUSTER_CFG_DIR):
+    os.mkdir(TETHYSCLUSTER_CFG_DIR)
 if not os.path.isfile(TETHYSCLUSTER_TETHYS_CFG_FILE):
     with open(TETHYSCLUSTER_TETHYS_CFG_FILE, 'w') as config_file:
         pass
