@@ -9,8 +9,8 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-tethys_compute',
-    version='0.0.0',
-    packages=['tethys_compute'],
+    version='0.0.2',
+    packages=['tethys_compute', 'tethys_compute/migrations'],
     include_package_data=True,
     license='BSD 2-Clause License',  # example license
     description='A Django app for adding computing resources admin controls to Tethys .',
